@@ -1,0 +1,46 @@
+#!/usr/bin/env python
+import telebot
+
+TOKEN = 'token'
+bot = telebot.TeleBot(TOKEN)
+
+
+@bot.message_handler(content_types=["text"])
+def input(message):
+    keyboard = telebot.types.InlineKeyboardMarkup()
+
+    keyboard.row(telebot.types.InlineKeyboardButton(text="+",
+                                                    callback_data="1"),
+                 telebot.types.InlineKeyboardButton(text="-",
+                                                    callback_data="2"))
+    keyboard.row(telebot.types.InlineKeyboardButton(text="*",
+                                                    callback_data="3"),
+                 telebot.types.InlineKeyboardButton(text="/",
+                                                    callback_data="4"))
+    bot.send_message(message.chat.id, message.text, reply_markup=keyboard)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_inline(call):
+    try:
+        nums = [float(n) for n in call.message.text.split()]
+
+        if call.data == "1":
+            answer = nums[0]+nums[1]
+        elif call.data=="2":
+            answer = nums[0] - nums[1]
+        elif call.data == "3":
+            answer = nums[0] * nums[1]
+        elif call.data=="4":
+            if(nums[1]!=0):
+                answer = nums[0] / nums[1]
+            else:
+                answer="Деление на ноль невозможно"
+    except:
+        answer="Введено некорректное значение"
+
+    bot.edit_message_text(chat_id=call.message.chat.id,
+    message_id=call.message.message_id, text=answer)
+
+if __name__=="__main__":
+    bot.polling(none_stop=True)
